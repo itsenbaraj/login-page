@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #ffffff, #f3f4f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background-color: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 350px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.3s;
+    }
+    input:focus {
+      border-color: #6366f1;
+    }
+    button {
+      width: 100%;
+      background-color: #4f46e5;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #4338ca;
+    }
+    .captcha-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    canvas {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+    }
+    .refresh-btn {
+      padding: 5px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background-color: #f9fafb;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .refresh-btn:hover {
+      background-color: #f3f4f6;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Sign In</h1>
+    <p>Enter your username, password, and captcha.</p>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter password" required>
+
+      <label for="captchaInput">Captcha</label>
+      <div class="captcha-container">
+        <canvas id="captchaCanvas" width="150" height="50"></canvas>
+        <button type="button" class="refresh-btn" id="refreshCaptcha">↻</button>
+      </div>
+      <input type="text" id="captchaInput" placeholder="Enter captcha" required>
+
+      <div id="error" class="error"></div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    const captchaCanvas = document.getElementById('captchaCanvas');
+    const ctx = captchaCanvas.getContext('2d');
+    const refreshBtn = document.getElementById('refreshCaptcha');
+    const loginForm = document.getElementById('loginForm');
+    const errorDiv = document.getElementById('error');
+
+    let captchaText = '';
+
+    function generateCaptcha() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      let text = '';
+      for (let i = 0; i < 6; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
+      captchaText = text;
+      drawCaptcha(text);
+    }
+
+    function drawCaptcha(text) {
+      const w = captchaCanvas.width;
+      const h = captchaCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#f3f4f6';
+      ctx.fillRect(0, 0, w, h);
+
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * w, Math.random() * h);
+        ctx.lineTo(Math.random() * w, Math.random() * h);
+        ctx.strokeStyle = `rgba(0,0,0,${0.1 + Math.random() * 0.1})`;
+        ctx.stroke();
+      }
+
+      const charWidth = w / text.length;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const fontSize = 24 + Math.random() * 6;
+        ctx.font = `${fontSize}px sans-serif`;
+        ctx.save();
+        ctx.translate(i * charWidth + 10, 35 + Math.random() * 5);
+        ctx.rotate((Math.random() - 0.5) * 0.4);
+        ctx.fillStyle = `rgba(${30 + Math.random()*150},${30 + Math.random()*150},${30 + Math.random()*150},0.9)`;
+        ctx.fillText(ch, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    refreshBtn.addEventListener('click', generateCaptcha);
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const captchaInput = document.getElementById('captchaInput').value.trim();
+
+      if (!username || !password || !captchaInput) {
+        errorDiv.textContent = 'Please fill all fields.';
+        return;
+      }
+
+      if (captchaInput !== captchaText) {
+        errorDiv.textContent = 'Captcha does not match. Try again!';
+        generateCaptcha();
+        return;
+      }
+
+      errorDiv.textContent = '';
+      alert('Login successful! (Demo)');
+      loginForm.reset();
+      generateCaptcha();
+    });
+
+    generateCaptcha();
+  </script>
+</body>
+</html>
